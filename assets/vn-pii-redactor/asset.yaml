@@ -14,7 +14,7 @@ personal_data: true
 source:
   repository: https://github.com/kinhdx/llm-service-starter
   path: src/service/redact.py
-  version: 2b0e8f7
+  version: a0df0ba
 safeguards:
   - unit tests for each identifier type and for amounts and transaction codes that must not be masked
 limitations:

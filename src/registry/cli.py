@@ -31,9 +31,9 @@ def main(argv: list[str] | None = None) -> int:
         print("fix validation problems first (registry validate)")
         return 1
     if args.check:
-        current = (ROOT / "CATALOG.md").read_text(encoding="utf-8") if (ROOT / "CATALOG.md").exists() else ""
-        if current != catalog.render(assets):
-            print("CATALOG.md is out of date: run `registry catalog` and commit the result")
+        outdated = catalog.stale(assets, ROOT)
+        if outdated:
+            print(f"{' and '.join(outdated)} out of date: run `registry catalog` and commit the result")
             return 1
         print("catalog up to date")
         return 0

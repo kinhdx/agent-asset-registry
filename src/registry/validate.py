@@ -23,6 +23,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = json.loads((ROOT / "schema" / "asset.schema.json").read_text(encoding="utf-8"))
 REVIEW_DAYS = 180
 LEVELS = ["experimental", "validated", "production"]
+# Without a format checker, "format": "date" is only an annotation and "soon" would pass.
+VALIDATOR = jsonschema.Draft202012Validator(SCHEMA, format_checker=jsonschema.Draft202012Validator.FORMAT_CHECKER)
 
 
 @dataclass
@@ -51,11 +53,13 @@ def check(asset: dict, today: date | None = None, name: str = "") -> list[Proble
     today = today or date.today()
     who = asset.get("id") or name
     problems = [Problem(who, f"schema: {e.message} at {'/'.join(map(str, e.path)) or 'top level'}")
-                for e in jsonschema.Draft202012Validator(SCHEMA).iter_errors(asset)]
+                for e in VALIDATOR.iter_errors(asset)]
     if problems:
         return problems
     level = asset["maturity"]
     if level == "deprecated":
+        if not asset.get("deprecation"):
+            problems.append(Problem(who, "deprecated requires a deprecation block with a reason and a sunset date"))
         return problems
     rank = LEVELS.index(level)
     if rank >= 1:
@@ -97,7 +101,7 @@ def _production(asset: dict, who: str, today: date) -> list[Problem]:
         age = (today - date.fromisoformat(ops["last_review"])).days
         if age > REVIEW_DAYS:
             out.append(Problem(who, f"last review was {age} days ago (limit {REVIEW_DAYS})"))
-    if asset["evaluation"].get("synthetic", True):
+    if (asset.get("evaluation") or {}).get("synthetic", True):
         out.append(Problem(who, "production requires an evaluation on real data (evaluation.synthetic: false)"))
     return out
 

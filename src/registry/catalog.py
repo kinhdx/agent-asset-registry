@@ -21,7 +21,26 @@ def render(assets: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_json(assets: list[dict]) -> str:
+    return json.dumps(sorted(assets, key=lambda a: a["id"]), ensure_ascii=False, indent=1, default=str)
+
+
 def write(assets: list[dict], root: Path) -> None:
-    (root / "CATALOG.md").write_text(render(assets), encoding="utf-8")
-    (root / "catalog.json").write_text(json.dumps(sorted(assets, key=lambda a: a["id"]), ensure_ascii=False,
-                                                  indent=1, default=str), encoding="utf-8")
+    (root / "CATALOG.md").write_text(render(assets), encoding="utf-8", newline="\n")
+    (root / "catalog.json").write_text(render_json(assets), encoding="utf-8", newline="\n")
+
+
+def stale(assets: list[dict], root: Path) -> list[str]:
+    """Names of the committed catalog files that differ from what the manifests would generate."""
+    def read(name: str) -> str:
+        path = root / name
+        return path.read_text(encoding="utf-8") if path.exists() else ""
+    out = []
+    if read("CATALOG.md") != render(assets):
+        out.append("CATALOG.md")
+    try:
+        if json.loads(read("catalog.json") or "null") != json.loads(render_json(assets)):
+            out.append("catalog.json")
+    except json.JSONDecodeError:
+        out.append("catalog.json")
+    return out

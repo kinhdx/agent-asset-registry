@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from registry.catalog import render
+from registry.catalog import render, stale, write
 from registry.validate import check, check_all, load
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets"
@@ -81,3 +81,29 @@ def test_catalog_lists_every_asset_and_marks_synthetic_evaluations():
     for a in assets:
         assert f"assets/{a['id']}/asset.yaml" in text
     assert "(synthetic)" in text
+
+
+def test_deprecated_without_a_deprecation_block_is_rejected(validated):
+    validated["maturity"] = "deprecated"
+    assert any("deprecation block" in m for m in codes(check(validated, TODAY)))
+
+
+def test_dates_are_checked_against_their_format(validated):
+    validated["maturity"] = "production"
+    validated["operations"] = {"runbook": "x", "dashboard": "x", "on_call": "x", "risk_approval": "x",
+                               "last_review": "soon"}
+    assert any("schema:" in m and "last_review" in m for m in codes(check(validated, TODAY)))
+
+
+def test_production_without_evaluation_reports_instead_of_crashing(validated):
+    validated["maturity"] = "production"
+    del validated["evaluation"]
+    assert "validated requires an evaluation" in codes(check(validated, TODAY))
+
+
+def test_stale_catalog_json_is_detected(tmp_path):
+    assets, _ = check_all(ASSETS, TODAY)
+    write(assets, tmp_path)
+    assert stale(assets, tmp_path) == []
+    (tmp_path / "catalog.json").write_text("[]", encoding="utf-8")
+    assert stale(assets, tmp_path) == ["catalog.json"]

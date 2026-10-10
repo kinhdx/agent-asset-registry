@@ -14,12 +14,12 @@ personal_data: false
 source:
   repository: https://github.com/kinhdx/loan-dossier-intake
   path: src/loan_intake/rag
-  version: dc6b2b4
+  version: 7460dad
 evaluation:
   dataset: eval/rag_questions.jsonl (30 in scope, 6 out of scope)
   dataset_size: 36
   synthetic: true
-  report: https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/rag-20261010-1055-claude-haiku-5-5.md
+  report: https://github.com/kinhdx/loan-dossier-intake/blob/7460dad/reports/rag-20261010-1055-claude-haiku-5-5.md
   date: 2026-10-10
   metrics:
     hit_at_1_pct: 93.3

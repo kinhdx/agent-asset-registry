@@ -15,12 +15,12 @@ personal_data: true
 source:
   repository: https://github.com/kinhdx/loan-dossier-intake
   path: src/loan_intake
-  version: dc6b2b4
+  version: 7460dad
 evaluation:
   dataset: fixtures/dossiers (30 standard, 10 stress)
   dataset_size: 40
   synthetic: true
-  report: https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/idp-20261010-1101-claude-sonnet-5-5.md
+  report: https://github.com/kinhdx/loan-dossier-intake/blob/7460dad/reports/idp-20261010-1101-claude-sonnet-5-5.md
   date: 2026-10-10
   metrics:
     decision_accuracy_standard_pct: 100.0

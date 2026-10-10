@@ -14,16 +14,16 @@ personal_data: true
 source:
   repository: https://github.com/kinhdx/llm-service-starter
   path: prompts/triage.md
-  version: 2b0e8f7
+  version: a0df0ba
 evaluation:
   dataset: evals/cases.jsonl
   dataset_size: 40
   synthetic: true
-  report: https://github.com/kinhdx/llm-service-starter/blob/2b0e8f7/evals/report.md
+  report: https://github.com/kinhdx/llm-service-starter/blob/a0df0ba/evals/report.md
   date: 2026-10-10
   metrics:
     category_accuracy: 0.95
-    urgency_accuracy: 0.75
+    urgency_accuracy: 0.775
     fraud_recall: 1.0
     human_route_recall: 1.0
     max_cost_per_case_usd: 0.00025
@@ -33,7 +33,7 @@ evaluation:
     fraud_recall: {op: ">=", value: 1.0}
     human_route_recall: {op: ">=", value: 1.0}
 safeguards:
-  - card, ID, phone, e-mail and account numbers are redacted before the model call
+  - card, ID, phone and e-mail values, and account numbers after an account label, are redacted before the model call
   - fraud routing and urgency are enforced in code, not only in the prompt
   - traces carry token counts, cost and prompt version, never the complaint text
 human_oversight: >
