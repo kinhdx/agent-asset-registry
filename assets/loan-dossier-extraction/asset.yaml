@@ -36,7 +36,7 @@ evaluation:
 safeguards:
   - routing is decided by deterministic rules, not by the model
   - every extracted value must occur in the text of text-layer documents
-  - cross-document checks on name, ID number and date of birth; CCCD number and expiry rules on scanned cards
+  - cross-document checks on name (including diacritics), ID number and date of birth; CCCD number and expiry rules on scanned cards
   - ID numbers masked in API listings; the model-call journal stores no document content
 human_oversight: >
   Any failed check sends the dossier to a reviewer, who accepts or returns it with a note. The workflow never
