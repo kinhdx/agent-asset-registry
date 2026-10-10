@@ -1,0 +1,217 @@
+[
+ {
+  "id": "complaint-triage",
+  "name": "Customer complaint triage",
+  "kind": "prompt",
+  "maturity": "validated",
+  "owner": "ai-coe",
+  "description": "Classifies a Vietnamese customer complaint by product area and urgency and routes it to a person or the queue. Fraud and complaints that mention legal action always go to a person.\n",
+  "use_cases": [
+   "complaint intake from app, e-mail and call-centre notes"
+  ],
+  "models": [
+   "claude-haiku-5-5"
+  ],
+  "data_classification": "confidential",
+  "personal_data": true,
+  "source": {
+   "repository": "https://github.com/kinhdx/llm-service-starter",
+   "path": "prompts/triage.md",
+   "version": "2b0e8f7"
+  },
+  "evaluation": {
+   "dataset": "evals/cases.jsonl",
+   "dataset_size": 40,
+   "synthetic": true,
+   "report": "https://github.com/kinhdx/llm-service-starter/blob/2b0e8f7/evals/report.md",
+   "date": "2026-10-10",
+   "metrics": {
+    "category_accuracy": 0.95,
+    "urgency_accuracy": 0.75,
+    "fraud_recall": 1.0,
+    "human_route_recall": 1.0,
+    "max_cost_per_case_usd": 0.00025
+   },
+   "thresholds": {
+    "category_accuracy": {
+     "op": ">=",
+     "value": 0.85
+    },
+    "urgency_accuracy": {
+     "op": ">=",
+     "value": 0.7
+    },
+    "fraud_recall": {
+     "op": ">=",
+     "value": 1.0
+    },
+    "human_route_recall": {
+     "op": ">=",
+     "value": 1.0
+    }
+   }
+  },
+  "safeguards": [
+   "card, ID, phone, e-mail and account numbers are redacted before the model call",
+   "fraud routing and urgency are enforced in code, not only in the prompt",
+   "traces carry token counts, cost and prompt version, never the complaint text"
+  ],
+  "human_oversight": "Fraud and legal-threat complaints are always handled by a person; other complaints enter the normal queue where agents can re-categorise them.\n",
+  "limitations": [
+   "labels written by one person; urgency definition not yet agreed with the business"
+  ]
+ },
+ {
+  "id": "loan-dossier-extraction",
+  "name": "Loan dossier extraction and gating",
+  "kind": "workflow",
+  "maturity": "validated",
+  "owner": "ai-coe",
+  "description": "Classifies the documents of a consumer loan dossier (application form, citizen ID card, payslip), reads their fields, and routes the dossier to underwriting, review or back to the customer with rule-based checks.\n",
+  "use_cases": [
+   "consumer loan intake",
+   "document completeness and consistency checks before underwriting"
+  ],
+  "models": [
+   "claude-haiku-5-5",
+   "claude-sonnet-5-5"
+  ],
+  "data_classification": "confidential",
+  "personal_data": true,
+  "source": {
+   "repository": "https://github.com/kinhdx/loan-dossier-intake",
+   "path": "src/loan_intake",
+   "version": "dc6b2b4"
+  },
+  "evaluation": {
+   "dataset": "fixtures/dossiers (30 standard, 10 stress)",
+   "dataset_size": 40,
+   "synthetic": true,
+   "report": "https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/idp-20261010-1101-claude-sonnet-5-5.md",
+   "date": "2026-10-10",
+   "metrics": {
+    "decision_accuracy_standard_pct": 100.0,
+    "decision_accuracy_stress_pct": 70.0,
+    "defect_recall_pct": 100.0,
+    "ready_with_wrong_data": 0,
+    "scanned_field_accuracy_stress_pct": 92.9,
+    "cost_per_dossier_stress_usd": 0.024
+   },
+   "thresholds": {
+    "decision_accuracy_standard_pct": {
+     "op": ">=",
+     "value": 95
+    },
+    "defect_recall_pct": {
+     "op": ">=",
+     "value": 100
+    },
+    "ready_with_wrong_data": {
+     "op": "<=",
+     "value": 0
+    }
+   }
+  },
+  "safeguards": [
+   "routing is decided by deterministic rules, not by the model",
+   "every extracted value must occur in the text of text-layer documents",
+   "cross-document checks on name, ID number and date of birth; CCCD number and expiry rules on scanned cards",
+   "ID numbers masked in API listings; the model-call journal stores no document content"
+  ],
+  "human_oversight": "Any failed check sends the dossier to a reviewer, who accepts or returns it with a note. The workflow never approves or declines credit.\n",
+  "limitations": [
+   "evaluated on synthetic documents in three layouts only",
+   "reads the front of the ID card only",
+   "poor scans send clean dossiers to review (60% of clean stress dossiers with Sonnet)"
+  ]
+ },
+ {
+  "id": "loan-policy-qa",
+  "name": "Loan product policy question answering",
+  "kind": "workflow",
+  "maturity": "validated",
+  "owner": "ai-coe",
+  "description": "Answers staff questions about a loan product from the policy documents only, citing the sections used, and declines questions the policy does not cover. Hybrid retrieval (local multilingual embeddings plus BM25).\n",
+  "use_cases": [
+   "branch and call-centre staff questions about product rules, fees and process"
+  ],
+  "models": [
+   "claude-haiku-5-5"
+  ],
+  "data_classification": "internal",
+  "personal_data": false,
+  "source": {
+   "repository": "https://github.com/kinhdx/loan-dossier-intake",
+   "path": "src/loan_intake/rag",
+   "version": "dc6b2b4"
+  },
+  "evaluation": {
+   "dataset": "eval/rag_questions.jsonl (30 in scope, 6 out of scope)",
+   "dataset_size": 36,
+   "synthetic": true,
+   "report": "https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/rag-20261010-1055-claude-haiku-5-5.md",
+   "date": "2026-10-10",
+   "metrics": {
+    "hit_at_1_pct": 93.3,
+    "hit_at_4_pct": 100.0,
+    "key_fact_accuracy_pct": 100.0,
+    "citation_accuracy_pct": 100.0,
+    "correct_refusal_pct": 100.0,
+    "cost_per_question_usd": 0.00018
+   },
+   "thresholds": {
+    "hit_at_4_pct": {
+     "op": ">=",
+     "value": 95
+    },
+    "key_fact_accuracy_pct": {
+     "op": ">=",
+     "value": 95
+    },
+    "correct_refusal_pct": {
+     "op": ">=",
+     "value": 100
+    }
+   }
+  },
+  "safeguards": [
+   "answers are limited to retrieved sections and must cite them; an uncited answer is treated as unanswerable",
+   "citations are restricted to the IDs of the retrieved sections",
+   "embeddings are computed locally, so policy text is not sent out at indexing time"
+  ],
+  "human_oversight": "Answers are for staff, not customers. Each answer shows its sources so staff can check the policy text.\n",
+  "limitations": [
+   "32 policy sections; not tested on a large or conflicting corpus",
+   "lexical weight tuned on the evaluation questions themselves"
+  ]
+ },
+ {
+  "id": "vn-pii-redactor",
+  "name": "Vietnamese identifier redaction",
+  "kind": "tool",
+  "maturity": "experimental",
+  "owner": "ai-coe",
+  "description": "Replaces card numbers (Luhn-checked), citizen and old ID numbers, Vietnamese phone numbers, e-mail addresses and labelled account numbers with typed placeholders before text reaches a model or a log.\n",
+  "use_cases": [
+   "pre-processing for any prompt that carries customer text"
+  ],
+  "models": [
+   "none"
+  ],
+  "data_classification": "confidential",
+  "personal_data": true,
+  "source": {
+   "repository": "https://github.com/kinhdx/llm-service-starter",
+   "path": "src/service/redact.py",
+   "version": "2b0e8f7"
+  },
+  "safeguards": [
+   "unit tests for each identifier type and for amounts and transaction codes that must not be masked"
+  ],
+  "limitations": [
+   "pattern-based; does not detect names or addresses",
+   "account numbers are found only after a label such as \"STK\"",
+   "no measured precision and recall on real text yet, which is what validated requires"
+  ]
+ }
+]

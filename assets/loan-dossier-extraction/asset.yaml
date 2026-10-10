@@ -1,0 +1,47 @@
+id: loan-dossier-extraction
+name: Loan dossier extraction and gating
+kind: workflow
+maturity: validated
+owner: ai-coe
+description: >
+  Classifies the documents of a consumer loan dossier (application form, citizen ID card, payslip), reads their
+  fields, and routes the dossier to underwriting, review or back to the customer with rule-based checks.
+use_cases:
+  - consumer loan intake
+  - document completeness and consistency checks before underwriting
+models: [claude-haiku-5-5, claude-sonnet-5-5]
+data_classification: confidential
+personal_data: true
+source:
+  repository: https://github.com/kinhdx/loan-dossier-intake
+  path: src/loan_intake
+  version: dc6b2b4
+evaluation:
+  dataset: fixtures/dossiers (30 standard, 10 stress)
+  dataset_size: 40
+  synthetic: true
+  report: https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/idp-20261010-1101-claude-sonnet-5-5.md
+  date: 2026-10-10
+  metrics:
+    decision_accuracy_standard_pct: 100.0
+    decision_accuracy_stress_pct: 70.0
+    defect_recall_pct: 100.0
+    ready_with_wrong_data: 0
+    scanned_field_accuracy_stress_pct: 92.9
+    cost_per_dossier_stress_usd: 0.024
+  thresholds:
+    decision_accuracy_standard_pct: {op: ">=", value: 95}
+    defect_recall_pct: {op: ">=", value: 100}
+    ready_with_wrong_data: {op: "<=", value: 0}
+safeguards:
+  - routing is decided by deterministic rules, not by the model
+  - every extracted value must occur in the text of text-layer documents
+  - cross-document checks on name, ID number and date of birth; CCCD number and expiry rules on scanned cards
+  - ID numbers masked in API listings; the model-call journal stores no document content
+human_oversight: >
+  Any failed check sends the dossier to a reviewer, who accepts or returns it with a note. The workflow never
+  approves or declines credit.
+limitations:
+  - evaluated on synthetic documents in three layouts only
+  - reads the front of the ID card only
+  - poor scans send clean dossiers to review (60% of clean stress dossiers with Sonnet)

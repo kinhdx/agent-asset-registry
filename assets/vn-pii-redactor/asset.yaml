@@ -1,0 +1,23 @@
+id: vn-pii-redactor
+name: Vietnamese identifier redaction
+kind: tool
+maturity: experimental
+owner: ai-coe
+description: >
+  Replaces card numbers (Luhn-checked), citizen and old ID numbers, Vietnamese phone numbers, e-mail addresses
+  and labelled account numbers with typed placeholders before text reaches a model or a log.
+use_cases:
+  - pre-processing for any prompt that carries customer text
+models: [none]
+data_classification: confidential
+personal_data: true
+source:
+  repository: https://github.com/kinhdx/llm-service-starter
+  path: src/service/redact.py
+  version: 2b0e8f7
+safeguards:
+  - unit tests for each identifier type and for amounts and transaction codes that must not be masked
+limitations:
+  - pattern-based; does not detect names or addresses
+  - account numbers are found only after a label such as "STK"
+  - no measured precision and recall on real text yet, which is what validated requires

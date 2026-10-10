@@ -1,0 +1,43 @@
+id: complaint-triage
+name: Customer complaint triage
+kind: prompt
+maturity: validated
+owner: ai-coe
+description: >
+  Classifies a Vietnamese customer complaint by product area and urgency and routes it to a person or the
+  queue. Fraud and complaints that mention legal action always go to a person.
+use_cases:
+  - complaint intake from app, e-mail and call-centre notes
+models: [claude-haiku-5-5]
+data_classification: confidential
+personal_data: true
+source:
+  repository: https://github.com/kinhdx/llm-service-starter
+  path: prompts/triage.md
+  version: 2b0e8f7
+evaluation:
+  dataset: evals/cases.jsonl
+  dataset_size: 40
+  synthetic: true
+  report: https://github.com/kinhdx/llm-service-starter/blob/2b0e8f7/evals/report.md
+  date: 2026-10-10
+  metrics:
+    category_accuracy: 0.95
+    urgency_accuracy: 0.75
+    fraud_recall: 1.0
+    human_route_recall: 1.0
+    max_cost_per_case_usd: 0.00025
+  thresholds:
+    category_accuracy: {op: ">=", value: 0.85}
+    urgency_accuracy: {op: ">=", value: 0.7}
+    fraud_recall: {op: ">=", value: 1.0}
+    human_route_recall: {op: ">=", value: 1.0}
+safeguards:
+  - card, ID, phone, e-mail and account numbers are redacted before the model call
+  - fraud routing and urgency are enforced in code, not only in the prompt
+  - traces carry token counts, cost and prompt version, never the complaint text
+human_oversight: >
+  Fraud and legal-threat complaints are always handled by a person; other complaints enter the normal queue
+  where agents can re-categorise them.
+limitations:
+  - labels written by one person; urgency definition not yet agreed with the business

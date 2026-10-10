@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reusable AI asset",
+  "type": "object",
+  "required": ["id", "name", "kind", "maturity", "owner", "description", "models", "data_classification", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "name": {"type": "string", "minLength": 3},
+    "kind": {"enum": ["prompt", "agent", "workflow", "evaluation", "tool"]},
+    "maturity": {"enum": ["experimental", "validated", "production", "deprecated"]},
+    "owner": {"type": "string", "minLength": 2},
+    "description": {"type": "string", "minLength": 20},
+    "use_cases": {"type": "array", "items": {"type": "string"}},
+    "models": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "data_classification": {"enum": ["public", "internal", "confidential", "restricted"]},
+    "personal_data": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "required": ["repository", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "repository": {"type": "string"},
+        "path": {"type": "string"},
+        "version": {"type": "string"}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "required": ["dataset", "report", "date", "metrics", "thresholds"],
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {"type": "string"},
+        "dataset_size": {"type": "integer", "minimum": 1},
+        "synthetic": {"type": "boolean"},
+        "report": {"type": "string"},
+        "date": {"type": "string", "format": "date"},
+        "metrics": {"type": "object", "additionalProperties": {"type": "number"}},
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["op", "value"],
+            "additionalProperties": false,
+            "properties": {"op": {"enum": [">=", "<="]}, "value": {"type": "number"}}
+          }
+        }
+      }
+    },
+    "safeguards": {"type": "array", "items": {"type": "string"}},
+    "human_oversight": {"type": "string"},
+    "operations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runbook": {"type": "string"},
+        "dashboard": {"type": "string"},
+        "on_call": {"type": "string"},
+        "risk_approval": {"type": "string"},
+        "last_review": {"type": "string", "format": "date"}
+      }
+    },
+    "deprecation": {
+      "type": "object",
+      "required": ["reason", "sunset"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {"type": "string"},
+        "replaced_by": {"type": "string"},
+        "sunset": {"type": "string", "format": "date"}
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  }
+}

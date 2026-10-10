@@ -1,0 +1,43 @@
+id: loan-policy-qa
+name: Loan product policy question answering
+kind: workflow
+maturity: validated
+owner: ai-coe
+description: >
+  Answers staff questions about a loan product from the policy documents only, citing the sections used, and
+  declines questions the policy does not cover. Hybrid retrieval (local multilingual embeddings plus BM25).
+use_cases:
+  - branch and call-centre staff questions about product rules, fees and process
+models: [claude-haiku-5-5]
+data_classification: internal
+personal_data: false
+source:
+  repository: https://github.com/kinhdx/loan-dossier-intake
+  path: src/loan_intake/rag
+  version: dc6b2b4
+evaluation:
+  dataset: eval/rag_questions.jsonl (30 in scope, 6 out of scope)
+  dataset_size: 36
+  synthetic: true
+  report: https://github.com/kinhdx/loan-dossier-intake/blob/dc6b2b4/reports/rag-20261010-1055-claude-haiku-5-5.md
+  date: 2026-10-10
+  metrics:
+    hit_at_1_pct: 93.3
+    hit_at_4_pct: 100.0
+    key_fact_accuracy_pct: 100.0
+    citation_accuracy_pct: 100.0
+    correct_refusal_pct: 100.0
+    cost_per_question_usd: 0.00018
+  thresholds:
+    hit_at_4_pct: {op: ">=", value: 95}
+    key_fact_accuracy_pct: {op: ">=", value: 95}
+    correct_refusal_pct: {op: ">=", value: 100}
+safeguards:
+  - answers are limited to retrieved sections and must cite them; an uncited answer is treated as unanswerable
+  - citations are restricted to the IDs of the retrieved sections
+  - embeddings are computed locally, so policy text is not sent out at indexing time
+human_oversight: >
+  Answers are for staff, not customers. Each answer shows its sources so staff can check the policy text.
+limitations:
+  - 32 policy sections; not tested on a large or conflicting corpus
+  - lexical weight tuned on the evaluation questions themselves
