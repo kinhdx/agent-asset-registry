@@ -14,16 +14,16 @@ personal_data: false
 source:
   repository: https://github.com/kinhdx/coding-agent-trial
   path: src/trial/harnesses.py
-  version: 3d81f84
+  version: 66ba554
 evaluation:
   dataset: tasks/
-  dataset_size: 11
-  report: https://github.com/kinhdx/coding-agent-trial/blob/3d81f84/results/main/report.md
+  dataset_size: 15
+  report: https://github.com/kinhdx/coding-agent-trial/blob/66ba554/README.md#results
   date: 2026-10-11
   metrics:
     resolved_pct: 100
-    usd_per_resolved: 0.077
-    median_agent_seconds: 139
+    usd_per_resolved: 0.098
+    median_agent_seconds: 168
     egress_attempts_outside_allowlist: 0
   thresholds:
     resolved_pct: {op: ">=", value: 80}
@@ -42,5 +42,6 @@ limitations:
   - the version measured, 0.2.0-rc.2, is a release candidate
   - in workspace-write mode it runs tools without asking for permission, so the permission policy that applies
     to the other two harnesses does not apply; containment is the sandbox and the network alone
-  - 11 tasks from three small Python repositories, one attempt each; every harness resolved all of them
+  - 15 tasks from three small Python repositories, 34 runs per harness
+    (11 tasks twice, 4 symptom-only reports three times); every harness resolved all of them, so the set does not rank harnesses on quality
   - prices use DeepSeek's peak rate, so the off-peak cost is lower than stated
