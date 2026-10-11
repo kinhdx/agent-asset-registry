@@ -109,7 +109,17 @@ def _production(asset: dict, who: str, today: date) -> list[Problem]:
 def check_all(folder: Path, today: date | None = None) -> tuple[list[dict], list[Problem]]:
     assets, problems, seen = [], [], set()
     for path in sorted(folder.glob("*/asset.yaml")):
-        asset = load(path)
+        # One unreadable manifest is reported against its folder; the others are still checked.
+        try:
+            asset = load(path)
+        except yaml.YAMLError as e:
+            mark = getattr(e, "problem_mark", None)
+            where = f" at line {mark.line + 1}" if mark else ""
+            problems.append(Problem(path.parent.name, f"not valid YAML{where}: {getattr(e, 'problem', None) or e}"))
+            continue
+        if not isinstance(asset, dict):
+            problems.append(Problem(path.parent.name, "manifest must be a mapping of fields"))
+            continue
         problems += check(asset, today, path.parent.name)
         if asset.get("id") != path.parent.name:
             problems.append(Problem(path.parent.name, f"folder name must equal id ({asset.get('id')})"))

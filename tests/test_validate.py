@@ -107,3 +107,21 @@ def test_stale_catalog_json_is_detected(tmp_path):
     assert stale(assets, tmp_path) == []
     (tmp_path / "catalog.json").write_text("[]", encoding="utf-8")
     assert stale(assets, tmp_path) == ["catalog.json"]
+
+
+def test_unreadable_manifest_is_reported(tmp_path, monkeypatch, capsys):
+    import shutil
+
+    from registry import cli
+
+    shutil.copytree(ASSETS / "complaint-triage", tmp_path / "complaint-triage")
+    (tmp_path / "broken").mkdir()
+    (tmp_path / "broken" / "asset.yaml").write_text("id: broken\nmodels: [claude-haiku-5-5\n", encoding="utf-8")
+    (tmp_path / "empty").mkdir()
+    (tmp_path / "empty" / "asset.yaml").write_text("", encoding="utf-8")
+    monkeypatch.setattr(cli, "ASSETS", tmp_path)
+    assert cli.main(["validate"]) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert any(line.startswith("broken:") for line in lines)
+    assert any(line.startswith("empty:") for line in lines)
+    assert not any(line.startswith("complaint-triage:") for line in lines)
