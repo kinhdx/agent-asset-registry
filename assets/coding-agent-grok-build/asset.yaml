@@ -1,0 +1,45 @@
+id: coding-agent-grok-build
+name: Grok Build as a bug-fix agent
+kind: agent
+maturity: validated
+owner: ai-coe
+description: >
+  Grok Build driven over the Agent Client Protocol in a sandbox with no network route out. It gets a bug
+  report and a fresh checkout of the starting commit, and returns a diff for a person to review.
+use_cases:
+  - first attempt at a reported bug in a Python service, with the fix reviewed before merge
+models: [grok-build-0.1, grok-4.6]
+data_classification: internal
+personal_data: false
+source:
+  repository: https://github.com/kinhdx/coding-agent-trial
+  path: src/trial/harnesses.py
+  version: 3d81f84
+evaluation:
+  dataset: tasks/
+  dataset_size: 11
+  report: https://github.com/kinhdx/coding-agent-trial/blob/3d81f84/results/main/report.md
+  date: 2026-10-11
+  metrics:
+    resolved_pct: 100
+    usd_per_resolved: 0.199
+    median_agent_seconds: 211
+    egress_attempts_outside_allowlist: 0
+  thresholds:
+    resolved_pct: {op: ">=", value: 80}
+    usd_per_resolved: {op: "<=", value: 0.25}
+    egress_attempts_outside_allowlist: {op: "<=", value: 0}
+safeguards:
+  - runs in a container on an internal network; the only route out is a gateway that relays model calls
+  - the sandbox holds a placeholder key; the gateway adds the real key and enforces a spending budget
+  - an egress proxy tunnels only allowlisted hosts and logs every attempt
+  - permission requests are answered by policy, with no network fetch tools and no writes outside the workspace
+human_oversight: >
+  The agent works on a throwaway checkout and its output is a diff. Nothing reaches a branch until a person
+  reviews the diff and the test results.
+limitations:
+  - 11 tasks from three small Python repositories, one attempt each; every harness resolved all of them, so the
+    set does not rank harnesses on quality
+  - the cost excludes 12 calls whose stream the CLI closed before the provider sent usage
+  - one run cost 0.69 USD, four times the median of 0.17 USD
+  - agent time measured with three sandboxes sharing 8 CPUs

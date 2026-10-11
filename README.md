@@ -55,6 +55,10 @@ entry whose review has lapsed.
 
 ## Current entries
 
-The three validated entries point to the repositories where they are built and to the evaluation reports at a
-pinned commit. All three were measured on synthetic data, which is why none of them can be marked production:
-the validator rejects `maturity: production` while `evaluation.synthetic` is true.
+Every validated entry points to the repository where it is built and to its evaluation report at a pinned
+commit. The three service entries were measured on synthetic data, which is why none of them can be marked
+production: the validator rejects `maturity: production` while `evaluation.synthetic` is true.
+
+The three coding-agent entries come from [coding-agent-trial](https://github.com/kinhdx/coding-agent-trial):
+the same harness configuration, sandbox and tasks for each. dsh met every threshold but stays experimental,
+because the version measured is a release candidate and it runs tools without asking for permission.
